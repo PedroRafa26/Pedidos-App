@@ -4,7 +4,7 @@ class PedidoItem {
   String id;
   String destinatario = "";
   Timestamp fechaPedido, fechaEntrega;
-  double costo;
+  String costo;
   String modelo = "";
   String talla = "";
   String color = "";
