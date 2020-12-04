@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:pedidos_app/contantes.dart';
 import 'package:pedidos_app/pages/cutPage.dart';
 import 'package:pedidos_app/pages/sewPage.dart';
 import 'package:pedidos_app/pages/shopPage.dart';
@@ -13,7 +16,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Pedidos App',
-      theme: ThemeData.dark(),
+      theme: ThemeData.light().copyWith(
+        accentColor: Color(0xFFE1AFE0),
+      ),
       home: MyHomePage(),
     );
   }
@@ -27,40 +32,55 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // CollectionReference _pedidosRef;
+  CollectionReference _pedidosRef;
+  int _actualPageIndex = 0;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _getPedidos();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _getPedidos();
+  }
 
-  // void _getPedidos() async {
-  //   _pedidosRef = FirebaseFirestore.instance.collection("pedidos");
-  // }
+  void _getPedidos() async {
+    await Firebase.initializeApp();
+    // EmailAuthProvider.credential(email: EMAIL, password: PASSWORD);
+    print("Inicio de la petición");
+    var pedidosRef = FirebaseFirestore.instance.collection("pedidos");
+    print(_pedidosRef);
+    setState(() {
+      _pedidosRef = pedidosRef;
+    });
+  }
 
   Widget _buildBody() {
-    // if (_pedidosRef == null) {
-    //   return Center(
-    //     child: CircularProgressIndicator(),
-    //   );
-    // } else {
+    if (_pedidosRef == null) {
+      print("Aun no hay data");
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else {
+      print("Actualmente navegando en: " + _actualPageIndex.toString());
       switch (_actualPageIndex) {
         case 0:
-          return CutPage(
-            // pedidosRef: _pedidosRef,
+          print("Entrando en caso 1");
+          return ShopPage(
+            pedidosRef: _pedidosRef,
           );
           break;
         case 1:
-          return ShopPage();
+          return CutPage(
+            pedidosRef: _pedidosRef,
+          );
           break;
         case 2:
-          return SewPage();
+          return SewPage(
+            pedidosRef: _pedidosRef,
+          );
         default:
           return Center(
             child: Text("Esto no debería aparecer nunca"),
           );
-      // }
+      }
     }
   }
 
@@ -69,8 +89,6 @@ class _MyHomePageState extends State<MyHomePage> {
   //   ShopPage(),
   //   SewPage(),
   // ];
-  int _actualPageIndex = 0;
-
   _onTapSelector(index) {
     setState(() {
       _actualPageIndex = index;
