@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pedidos_app/modals/PedidoItem.dart';
 
+import '../contantes.dart';
+
 // ignore: must_be_immutable
 class ShopPage extends StatefulWidget {
   ShopPage({Key key, @required this.pedidosRef}) : super(key: key);
@@ -26,6 +28,16 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
+  void _scrollToSelectedContent({GlobalKey expansionTileKey}) {
+    final keyContext = expansionTileKey.currentContext;
+    if (keyContext != null) {
+      Future.delayed(Duration(milliseconds: 200)).then((value) {
+        Scrollable.ensureVisible(keyContext,
+            duration: Duration(milliseconds: 200));
+      });
+    }
+  }
+
   Widget _buildPedidosList(
       BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
     if (!snapshot.hasData) {
@@ -36,11 +48,13 @@ class _ShopPageState extends State<ShopPage> {
       } else {
         return ListView(
             children: snapshot.data.docs.map((DocumentSnapshot document) {
+          //Key para trabajar el autoScroll al enpandir
+          final GlobalKey expansionTileKey = GlobalKey();
           PedidoItem pedido = PedidoItem.from(document);
           return Dismissible(
             key: Key(pedido.id),
             background: Container(
-              color: Colors.greenAccent,
+              color: MACUNROSE,
               child: Center(
                 child: Text(
                   "Tela Comprada",
@@ -52,13 +66,146 @@ class _ShopPageState extends State<ShopPage> {
               document.reference.update({'comprado': true});
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal:8.0),
-              child: Card(
-                child: ListTile(
-                  key: Key(pedido.id),
-                  title: Text("${pedido.destinatario}\n${pedido.modelo}"),
-                  leading: Text(pedido.fechaEntrega.toDate().day.toString() + '/' + pedido.fechaEntrega.toDate().month.toString()),
-                  trailing: Text("Color: ${pedido.color}\nTalla: ${pedido.talla}"),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: GestureDetector(
+                onLongPress: () {
+                  showDialog(
+                    context: context,
+                    child: AlertDialog(
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () {
+                              //TODO agregar funcionalidad de edición.
+                              showDialog(
+                                context: context,
+                                child: AlertDialog(
+                                  title: Text("Editado"),
+                                  content: Text(
+                                    "Sección en Construcción",
+                                  ),
+                                ),
+                              );
+                              print("Editado");
+                            },
+                            child: Text(
+                              "Editar",
+                              style: TextStyle(color: MACUNROSE),
+                            ),
+                          ),
+                          OutlinedButton(
+                            key: Key(pedido.id),
+                            onPressed: () {
+                              print("Eliminar");
+                              document.reference.delete();
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              "Eliminar",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                child: Card(
+                  child: ExpansionTile(
+                    key: expansionTileKey,
+                    onExpansionChanged: (value) {
+                      if (value) {
+                        _scrollToSelectedContent(
+                            expansionTileKey: expansionTileKey);
+                      }
+                    },
+                    childrenPadding: EdgeInsets.only(bottom: 10),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Row(
+                          key: Key(pedido.id),
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          // mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                children: [
+                                  Text("Destinatario: ${pedido.destinatario}"),
+                                  Text(
+                                      "Color: ${pedido.color == null ? "Sin color" : pedido.color}"),
+                                  Text("Talla: ${pedido.talla}"),
+                                  Text(
+                                    "Fecha de Entrega:\n${pedido.fechaEntrega.toDate().day} / ${pedido.fechaEntrega.toDate().month} / ${pedido.fechaEntrega.toDate().year}",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: MACUNROSE,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 75,
+                                    color: Colors.grey[200],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () {
+                              //TODO agregar funcionalidad de edición.
+                              showDialog(
+                                context: context,
+                                child: AlertDialog(
+                                  title: Text("Editado"),
+                                  content: Text(
+                                    "Sección en Construcción",
+                                  ),
+                                ),
+                              );
+                              print("Editado");
+                            },
+                            child: Text(
+                              "Editar",
+                              style: TextStyle(color: MACUNROSE),
+                            ),
+                          ),
+                          OutlinedButton(
+                            key: Key(pedido.id),
+                            onPressed: () {
+                              print("Eliminar");
+                              document.reference.delete();
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              "Eliminar",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    title: Text("${pedido.modelo}"),
+                  ),
                 ),
               ),
             ),

@@ -53,7 +53,7 @@ class _SewPageState extends State<SewPage> {
                 document.reference.update({'cortado': false});
               }
               if(direction == DismissDirection.startToEnd){
-                //TODO: Eliminar registro de la Base de datos
+                document.reference.delete();
               }
             },
             child: Padding(
