@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pedidos_app/modals/PedidoItem.dart';
+import 'package:pedidos_app/widgets/pedidoDetails.dart';
 
 // ignore: must_be_immutable
 class SewPage extends StatefulWidget {
@@ -36,37 +37,22 @@ class _SewPageState extends State<SewPage> {
       } else {
         return ListView(
             children: snapshot.data.docs.map((DocumentSnapshot document) {
+              final GlobalKey expansionTileKey = GlobalKey();
           PedidoItem pedido = PedidoItem.from(document);
-          return Dismissible(
-            key: Key(pedido.id),
-            background: Container(
-              color: Colors.greenAccent,
-              child: Center(
-                child: Text(
-                  "Entregado",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-            onDismissed: (DismissDirection direction) {
+          void onDismissed(DismissDirection direction) {
               if(direction == DismissDirection.endToStart){
                 document.reference.update({'cortado': false});
               }
               if(direction == DismissDirection.startToEnd){
                 document.reference.delete();
               }
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal:8.0),
-              child: Card(
-                child: ListTile(
-                  key: Key(pedido.id),
-                  title: Text("${pedido.destinatario}\n${pedido.modelo}"),
-                  leading: Text(pedido.fechaEntrega.toDate().day.toString() + '/' + pedido.fechaEntrega.toDate().month.toString()),
-                  trailing: Text("Color: ${pedido.color}\nTalla: ${pedido.talla}"),
-                ),
-              ),
-            ),
+            }
+          return PedidoDetails(
+            pedido:pedido,
+            document: document,
+            onDismissed: onDismissed,
+            expansionTileKey: expansionTileKey,
+            action: "Terminada",
           );
         }).toList());
       }

@@ -13,7 +13,7 @@ class _AddPedidoAlertDialogState extends State<AddPedidoAlertDialog> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String _destinatario = "";
-  Timestamp _fechaPedido, _fechaEntrega;
+  Timestamp _fechaEntrega;
   String _costo;
   String _modelo = "";
   String _talla = "";
@@ -23,17 +23,19 @@ class _AddPedidoAlertDialogState extends State<AddPedidoAlertDialog> {
     final formState = _formKey.currentState;
     if (!formState.validate()) return;
     formState.save();
-    Navigator.of(context).pop(PedidoItem(
-      destinatario: _destinatario,
-      modelo: _modelo,
-      talla: _talla,
-      color: _color,
-      costo: _costo,
-      comprado: false,
-      cortado: false,
-      fechaPedido: Timestamp.now(),
-      fechaEntrega: Timestamp.fromDate(DateTime.now().add(Duration(days: 4)))
-    ));
+    Navigator.of(context).pop(
+      PedidoItem(
+        destinatario: _destinatario,
+        modelo: _modelo,
+        talla: _talla,
+        color: _color,
+        costo: _costo,
+        comprado: false,
+        cortado: false,
+        fechaPedido: Timestamp.now(),
+        fechaEntrega: _fechaEntrega,
+      ),
+    );
   }
 
   @override
@@ -119,6 +121,18 @@ class _AddPedidoAlertDialogState extends State<AddPedidoAlertDialog> {
                   _costo = val != null ? val : "";
                 },
                 decoration: InputDecoration(labelText: "Costo"),
+              ),
+              InputDatePickerFormField(
+                fieldLabelText: "Fecha de Entrega",
+                onDateSaved: (val) {
+                  _fechaEntrega = val != null
+                      ? Timestamp.fromDate(val)
+                      : Timestamp.fromDate(
+                          DateTime.now().add(Duration(days: 4)));
+                },
+                initialDate: DateTime.now().add(Duration(days: 4)),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(Duration(days: 100)),
               ),
             ],
           ),
